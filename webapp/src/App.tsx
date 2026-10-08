@@ -5,7 +5,9 @@ const API_BASE = 'https://tg-shop.nazar-bronnikov22.workers.dev';
 interface Product {
   id: string;
   name: string;
-  price: number;
+  price: string;
+  currency?: string;
+  quantity?: number;
   image?: string;
 }
 
@@ -127,7 +129,21 @@ export default function App() {
               </div>
               <div className="product-info">
                 <h3>{product.name}</h3>
-                <div className="price">${product.price.toFixed(2)}</div>
+                <div className="price">
+                  {parseFloat(product.price || '0').toFixed(2)}{' '}
+                  {(product.currency || 'usd').toUpperCase()}
+                </div>
+                {product.quantity === 0 && (
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: 'rgba(255,100,100,0.8)',
+                      marginTop: 4,
+                    }}
+                  >
+                    Нет в наличии
+                  </div>
+                )}
               </div>
               <button className="buy-btn" onClick={() => addToCart(product.id)}>
                 В корзину

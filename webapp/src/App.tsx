@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const API_BASE = 'const API_BASE = 'const API_BASE = 'https://tg-shop.nazar-bronnikov22.workers.dev';
+const API_BASE = 'https://tg-shop.nazar-bronnikov22.workers.dev';
 
 interface Product {
   id: string;

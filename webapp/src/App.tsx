@@ -27,6 +27,7 @@ export default function App() {
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [cart, setCart] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     loadCategories();
@@ -72,26 +73,54 @@ export default function App() {
   }
 
   async function checkout(method: 'crypto' | 'stars') {
-    if (cart.length === 0) return;
+    if (cart.length === 0 || busy) return;
+    setBusy(true);
 
-    const res = await fetch(`${API_BASE}/api/pay/${method}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Telegram-Init-Data': getInitData(),
-      },
-      body: JSON.stringify({ productId: cart[0], quantity: 1 }),
-    });
+    try {
+      const initData = getInitData();
+      if (!initData) {
+        alert('Откройте магазин через Telegram, а не в браузере');
+        return;
+      }
 
-    const data = await res.json();
+      const res = await fetch(`${API_BASE}/api/pay/${method}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Telegram-Init-Data': initData,
+        },
+        body: JSON.stringify({ productId: cart[0], quantity: 1 }),
+      });
 
-    if (data.payUrl || data.invoiceLink) {
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert('Ошибка оплаты: ' + (data.error || res.status));
+        return;
+      }
+
       const url = data.payUrl || data.invoiceLink;
+      if (!url) {
+        alert('Сервер не вернул ссылку на оплату');
+        return;
+      }
+
       if (method === 'stars') {
-        window.Telegram?.WebApp?.openInvoice(url);
+        window.Telegram?.WebApp?.openInvoice(url, (status: string) => {
+          if (status === 'paid') {
+            alert('Оплата прошла. Товар придёт в чат с ботом.');
+            setCart([]);
+          } else if (status === 'failed') {
+            alert('Платёж не прошёл');
+          }
+        });
       } else {
         window.Telegram?.WebApp?.openLink(url);
       }
+    } catch (e: any) {
+      alert('Ошибка: ' + (e.message || 'неизвестная'));
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -133,17 +162,6 @@ export default function App() {
                   {parseFloat(product.price || '0').toFixed(2)}{' '}
                   {(product.currency || 'usd').toUpperCase()}
                 </div>
-                {product.quantity === 0 && (
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: 'rgba(255,100,100,0.8)',
-                      marginTop: 4,
-                    }}
-                  >
-                    Нет в наличии
-                  </div>
-                )}
               </div>
               <button className="buy-btn" onClick={() => addToCart(product.id)}>
                 В корзину
@@ -157,11 +175,19 @@ export default function App() {
         <div className="checkout-bar glass">
           <div className="cart-info">🛒 {cart.length} товар(ов)</div>
           <div className="checkout-buttons">
-            <button className="pay-btn crypto" onClick={() => checkout('crypto')}>
-              USDT
+            <button
+              className="pay-btn crypto"
+              disabled={busy}
+              onClick={() => checkout('crypto')}
+            >
+              {busy ? '...' : 'USDT'}
             </button>
-            <button className="pay-btn stars" onClick={() => checkout('stars')}>
-              ⭐ Stars
+            <button
+              className="pay-btn stars"
+              disabled={busy}
+              onClick={() => checkout('stars')}
+            >
+              {busy ? '...' : '⭐ Stars'}
             </button>
           </div>
         </div>

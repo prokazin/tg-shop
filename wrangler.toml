@@ -6,7 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "tg-shop-db"
-database_id = "ВСТАВЬТЕ_РЕАЛЬНЫЙ_ID_ИЗ_ПАНЕЛИ_CLOUDFLARE"
+database_id = "7e5b0088-a79f-4f5b-a412-0d6ee019b5e6"
 
 [vars]
 MARKUP_PERCENT = "20"

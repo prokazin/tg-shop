@@ -57,3 +57,43 @@ export async function createOrder(
 export async function getOrderStatus(env: any, orderId: string) {
   return request(env, `/api/orders/${orderId}`);
 }
+
+// Верификация подписи вебхука FoxReload
+export async function verifyWebhookSignature(
+  env: any,
+  rawBody: string,
+  signatureHeader: string
+): Promise<boolean> {
+  try {
+    const parts = Object.fromEntries(
+      signatureHeader.split(',').map((p) => p.split('=', 2))
+    );
+    const timestamp = parseInt(parts['t']);
+    const signature = parts['v1'];
+
+    if (Math.abs(Math.floor(Date.now() / 1000) - timestamp) > 300) {
+      return false; // старше 5 минут
+    }
+
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(env.FOXRELOAD_WEBHOOK_SECRET),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    const sig = await crypto.subtle.sign(
+      'HMAC',
+      key,
+      encoder.encode(`${timestamp}.${rawBody}`)
+    );
+    const expected = Array.from(new Uint8Array(sig))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+
+    return expected === signature;
+  } catch {
+    return false;
+  }
+}

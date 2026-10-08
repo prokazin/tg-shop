@@ -3,10 +3,14 @@ main = "src/index.ts"
 compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
 
+[assets]
+directory = "./webapp/dist"
+binding = "ASSETS"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "tg-shop-db"
-database_id = "7e5b0088-a79f-4f5b-a412-0d6ee019b5e6"
+database_id = "ВАШ_РЕАЛЬНЫЙ_ID"
 
 [vars]
 MARKUP_PERCENT = "20"

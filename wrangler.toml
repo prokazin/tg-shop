@@ -1,0 +1,12 @@
+name = "tg-shop"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "tg-shop-db"
+database_id = "ВСТАВЬТЕ_РЕАЛЬНЫЙ_ID_ИЗ_ПАНЕЛИ_CLOUDFLARE"
+
+[vars]
+MARKUP_PERCENT = "20"
